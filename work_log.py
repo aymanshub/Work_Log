@@ -32,8 +32,8 @@ def main_menu():
 
 def add_new_entry():
     # set task date
-    task_date = input("Date of the task:\nPlease use DD/MM/YYYY: ")  # get the task date from the user
-    datetime.datetime.strptime(task_date,'%d/%m/%Y')
+    date_input = input("Date of the task:\nPlease use DD/MM/YYYY: ")  # get the task date from the user
+    task_date = datetime.datetime.strptime(date_input,'%d/%m/%Y')
     # ToDo validate date correctness
 
     # set task name
@@ -51,6 +51,10 @@ def add_new_entry():
                      name=task_name,
                      duration=task_duration,
                      notes=task_notes)
+
+    new_entry.write_to_csv()
+    print("The following entry has been added:")
+    print(new_entry)
 
     # writeToCSV
 

@@ -1,4 +1,6 @@
 import datetime
+import csv
+import sys
 
 class Task:
 
@@ -17,4 +19,25 @@ class Task:
                                        duration=self.duration,
                                        notes=self.notes)
 
+    def write_to_csv(self, filename='work_log.csv'):
+        # verify if file exists, with the right header
+        with open(filename, "a", newline='') as csvfile:
+            fieldnames = ['date', 'task name', 'time spent', 'notes']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writerow({
+                'date': self.date,
+                'task name': self.name,
+                'time spent': self.duration,
+                'notes': self.notes,
+            })
 
+
+
+def _flog_exists(filename='work_log.csv'):
+    with open(filename, newline='') as f:
+        reader = csv.reader(f)
+        try:
+            for row in reader:
+                print(row)
+        except csv.Error as e:
+            sys.exit('file {}, line {}: {}'.format(filename, reader.line_num, e))
