@@ -48,10 +48,10 @@ if __name__ == '__main__':
         if user_selection.upper() in ["QUIT", "C"]:
             print("Quitting...Hope to see you soon!")
             break
+
         elif user_selection.upper() in ["ADD", "A"]:
             # call add new entry function
             add_new_entry()
-            continue
 
         elif user_selection.upper() in ["SEARCH", "B"]:
             search_in_existing_entries()

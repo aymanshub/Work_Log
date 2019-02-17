@@ -117,3 +117,4 @@ dmypy.json
 .idea/modules.xml
 .idea/Work_Log.iml
 .idea/workspace.xml
+.idea/vcs.xml
