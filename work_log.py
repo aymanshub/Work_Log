@@ -7,6 +7,8 @@ Feb-2019
 """
 
 import os
+import datetime
+from tasks import Task
 
 running_program = True
 
@@ -29,7 +31,28 @@ def main_menu():
 
 
 def add_new_entry():
-    pass
+    # set task date
+    task_date = input("Date of the task:\nPlease use DD/MM/YYYY: ")  # get the task date from the user
+    datetime.datetime.strptime(task_date,'%d/%m/%Y')
+    # ToDo validate date correctness
+
+    # set task name
+    task_name = input("Title of the task: ")
+    # ToDo clean trailing white-spaces
+
+    # set task duration
+    task_duration = int(input("Time spent (rounded minutes): "))
+    # ToDo validate correctness
+
+    # set task note
+    task_notes = input("Notes (Optional, you can leave this empty): ")
+
+    new_entry = Task(date=task_date,
+                     name=task_name,
+                     duration=task_duration,
+                     notes=task_notes)
+
+    # writeToCSV
 
 
 def search_in_existing_entries():
@@ -52,6 +75,7 @@ if __name__ == '__main__':
         elif user_selection.upper() in ["ADD", "A"]:
             # call add new entry function
             add_new_entry()
+            break
 
         elif user_selection.upper() in ["SEARCH", "B"]:
             search_in_existing_entries()
