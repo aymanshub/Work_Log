@@ -33,7 +33,7 @@ def main_menu():
 def add_new_entry():
     # set task date
     date_input = input("Date of the task:\nPlease use DD/MM/YYYY: ")  # get the task date from the user
-    task_date = datetime.datetime.strptime(date_input,'%d/%m/%Y')
+    task_date = datetime.datetime.strptime(date_input, '%d/%m/%Y').date()
     # ToDo validate date correctness
 
     # set task name
