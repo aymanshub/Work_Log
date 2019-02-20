@@ -41,14 +41,17 @@ def search_menu():
                                "e) Regex Pattern\n"
                                "f) Return to Main menu\n")
 
+        # loads all existing tasks in the work log CSV file
+        tasks_dict = Task.load_from_log()
+
         if user_selection.upper() in ["Select a Date".upper(), "A"]:
-            search_by_date()  # call search by date function
+            search_by_date(tasks_dict)  # call search by date function
         elif user_selection.upper() in ["Range of Dates".upper(), "B"]:
-            search_range_of_dates()  # call search by range of dates function
+            search_range_of_dates(tasks_dict)  # call search by range of dates function
         elif user_selection.upper() in ["Time spent".upper(), "C"]:
-            search_time_spent()  # call search by time spent function
+            search_time_spent(tasks_dict)  # call search by time spent function
         elif user_selection.upper() in ["Exact Search".upper(), "D"]:
-            search_exact_value()  # call search by exact value function
+            search_exact_value(tasks_dict)  # call search by exact value function
         elif user_selection.upper() in ["Regex Pattern".upper(), "E"]:
             search_regex_pattern()  # call search by regex pattern function
         elif user_selection.upper() in ["Return to Main menu".upper(), "F"]:
@@ -80,8 +83,8 @@ def add_new_entry(for_edit=False):
 
     while True:
         try:
-            # set task duration
-            task_duration = int(input("Time spent (rounded minutes): "))
+            # set task time_spent
+            time_spent = int(input("Time spent (rounded minutes): "))
         except ValueError:
             input("Invalid value!!!, press Enter to try again...")
             continue
@@ -94,7 +97,7 @@ def add_new_entry(for_edit=False):
     # create a new task instance
     new_task = Task(date=task_date,
                     name=task_name,
-                    duration=task_duration,
+                    time_spent=time_spent,
                     notes=task_notes)
 
     # check for duplicates, task should not be more than once in the log.
@@ -114,53 +117,56 @@ def add_new_entry(for_edit=False):
     input("Press enter to continue...")
 
 
-def display_selected_tasks(tasks):
+def display_tasks(tasks):
     i = 0
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        print(tasks[i])
-        print("\nResult {} of {}\n".format(i+1, len(tasks)))
-        commands = "[E]dit, [D]elete, [R]eturn to search menu"
-        if i < len(tasks) - 1:
-            # Add Next command
-            commands = "[N]ext, " + commands
-            if i > 0:
+        commands = "[R]eturn to search menu"
+        if not len(tasks):
+            print("no tasks have been found.".upper())
+        else:
+            print(tasks[i])
+            print("\nResult {} of {}\n".format(i+1, len(tasks)))
+            commands = "[E]dit, [D]elete, " + commands
+            if i < len(tasks) - 1:
+                # Add Next command
+                commands = "[N]ext, " + commands
+                if i > 0:
+                    # Add Back command
+                    commands = "[B]ack, " + commands
+            elif i > 0:
                 # Add Back command
                 commands = "[B]ack, " + commands
-        elif i > 0:
-            # Add Back command
-            commands = "[B]ack, " + commands
+
         print(commands)
         option = input()
 
-        if option.lower() in ['n', 'next']:
-            if i < len(tasks) - 1:
+        if option.lower() in ['n', 'next'] and i < len(tasks) - 1:
                 i += 1
-        elif option.lower() in ['b', 'back']:
-            if i > 0:
+        elif option.lower() in ['b', 'back'] and i > 0:
                 i -= 1
-        elif option.lower() in ['e', 'edit']:
+        elif option.lower() in ['e', 'edit'] and len(tasks):
             # clear the screen
             os.system("cls" if os.name == "nt" else "clear")
             print("Please edit the following task:\n{}".format(tasks[i]))
+            # edit is equivalent to delete existing and make new entry
             tasks[i].delete_task_from_log()
             add_new_entry(for_edit=True)
-            break  # back to search menu
-        elif option.lower() in ['d', 'Delete']:
-            # call delete function
+            return  # back to search menu
+        elif option.lower() in ['d', 'Delete'] and len(tasks):
+            # call delete method
             tasks[i].delete_task_from_log()
-            break  # back to search menu
+            return  # back to search menu
         elif option.lower() in ['r', 'return']:
-            break  # back to search menu
+            return  # back to search menu
 
 
-def search_by_date():
+def search_by_date(tasks_dict):
     # get the whole exiting tasks from the tasks log file and loads it into a dictionary
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        tasks_dict = Task.load_from_log()  # loads all existing tasks in the work log CSV file
         print("From below dates list\nPlease select a date index:")
         dates = enumerate(tasks_dict.keys(), start=1)
         for i, date in dates:
@@ -171,7 +177,7 @@ def search_by_date():
             index = int(input())
             if 1 <= index <= max_index: # range of valid selections
                 if index == max_index:
-                    break # return to Search menu
+                    return  # return to Search menu
                 else:
                     selected_tasks = tasks_dict[list(tasks_dict.keys())[index - 1]]
             else:
@@ -180,42 +186,68 @@ def search_by_date():
             input("Invalid selection, please press Enter to try again...")
             continue
         else:
-            display_selected_tasks(selected_tasks)
-            return # go back to Search menu
+            display_tasks(selected_tasks)
+            return  # go back to Search menu
 
 
-def search_range_of_dates():
+def search_range_of_dates(tasks_dict):
     while True:
-        print("Please enter dates range, use DD/MM/YYYY format")
+        # clear the screen
+        os.system("cls" if os.name == "nt" else "clear")
+        print("Please enter dates range, use DD/MM/YYYY format\nEnter [R] to Return to Search menu")
+        from_date = input("From date: ")
+        to_date = input("To date: ")
+        if 'R' in (from_date.upper(), to_date.upper()):
+            return  # go back to Search menu
         try:
-            from_date = input("From date: ")
-            to_date = input("To date: ")
+            from_date = datetime.datetime.strptime(from_date, date_fmt).date()
+            to_date = datetime.datetime.strptime(to_date, date_fmt).date()
         except ValueError:
             input("Invalid date!!!, press Enter to try again...")
             continue
         else:
-            break
+            selected_tasks = []
+            for key in tasks_dict.keys():
+                key_date = datetime.datetime.strptime(key, date_fmt).date()
+                if from_date <= key_date <= to_date:
+                    selected_tasks.extend(tasks_dict[key])
+            display_tasks(selected_tasks)
+            return  # go back to Search menu
 
-    # get tasks
-    # display using display_selected_tasks(tasks)
 
-
-def search_time_spent():
+def search_time_spent(tasks_dict):
     while True:
+        # clear the screen
+        os.system("cls" if os.name == "nt" else "clear")
+        time_spent = input("Please enter a time spent value (rounded minutes)\nEnter [R] to Return to Search menu:")
+        if time_spent.upper() == 'R':
+            return  # go back to Search menu
         try:
-            time_spent = input("Please enter the time spent value (rounded minutes): ")
+            time_spent = int(time_spent)
         except ValueError:
             input("Invalid value!!!, press Enter to try again...")
             continue
         else:
-            break
+            selected_tasks = []
+            for tasks in tasks_dict.values():
+                for task in tasks:
+                    if task.time_spent == time_spent:
+                        selected_tasks.append(task)
+            display_tasks(selected_tasks)
+            return  # go back to Search menu
 
-    # get tasks by time spent
-    # display using display_selected_tasks(tasks)
 
-
-def search_exact_value():
-    pass
+def search_exact_value(tasks_dict):
+    # clear the screen
+    os.system("cls" if os.name == "nt" else "clear")
+    text = input("Please enter any text to find in the Work Log:\n")
+    selected_tasks = []
+    for tasks in tasks_dict.values():
+        for task in tasks:
+            if text in task.name or text in task.notes:
+                selected_tasks.append(task)
+    display_tasks(selected_tasks)
+    return  # go back to Search menu
 
 
 def search_regex_pattern():

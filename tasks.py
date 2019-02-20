@@ -6,19 +6,19 @@ date_fmt = '%d/%m/%Y'
 
 class Task:
 
-    def __init__(self, date=None, name=None, duration=0, notes=None):
+    def __init__(self, date=None, name=None, time_spent=0, notes=None):
         self.date = datetime.date.today() if date is None else date
         self.name = name
-        self.duration = duration
+        self.time_spent = time_spent
         self.notes = notes
 
     def __str__(self):
         return "Date: {date}\n" \
                "Title: {title}\n" \
-               "Time Spent: {duration}\n" \
+               "Time Spent: {time_spent}\n" \
                "Notes: {notes}".format(date=datetime.date.strftime(self.date, date_fmt),
                                        title=self.name,
-                                       duration=self.duration,
+                                       time_spent=self.time_spent,
                                        notes=self.notes)
 
     def __eq__(self, other):
@@ -38,7 +38,7 @@ class Task:
                 writer.writerow({
                     'date': self.date.strftime(date_fmt),
                     'task name': self.name,
-                    'time spent': self.duration,
+                    'time spent': self.time_spent,
                     'notes': self.notes,
                 })
         except FileNotFoundError:
