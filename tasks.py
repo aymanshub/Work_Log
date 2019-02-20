@@ -55,7 +55,7 @@ class Task:
 
         with open(filename, newline='') as original, open(tempfile, 'w', newline='') as output:
             fieldnames = ['date', 'task name', 'time spent', 'notes']
-            reader = csv.DictReader(original, fieldnames=fieldnames)
+            reader = csv.DictReader(original)
             writer = csv.DictWriter(output, fieldnames=fieldnames)
             writer.writeheader()
             i = 1 # rows counter used for error handling
@@ -64,7 +64,7 @@ class Task:
                 # create task object from row
                 try:
                     date = datetime.datetime.strptime(row['date'], date_fmt).date()
-                    row_task = self.__class__(date, row['task name'], row['time spent'], row['notes'])
+                    row_task = self.__class__(date, row['task name'], int(row['time spent']), row['notes'])
                 except ValueError:
                     print("invalid record in {} , see line#{}\n skipping task!".format(filename, i))
                 else:
@@ -74,9 +74,6 @@ class Task:
         # Rename tempfile to filename, first remove existing filename then rename temp file
         os.remove(filename)
         os.rename(tempfile, filename)
-
-
-
 
     @classmethod
     def load_from_log(cls, filename='log.csv'):
@@ -88,7 +85,7 @@ class Task:
                 i += 1
                 try:
                     date = datetime.datetime.strptime(row['date'], date_fmt).date()
-                    new_task = cls(date, row['task name'], row['time spent'], row['notes'])
+                    new_task = cls(date, row['task name'], int(row['time spent']), row['notes'])
                 except ValueError:
                     print("invalid record in {} , see line#{}\n skipping task!".format(filename, i))
                 else:

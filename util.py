@@ -60,8 +60,9 @@ def search_menu():
             break
 
 
-def add_new_entry():
-    os.system("cls" if os.name == "nt" else "clear")  # clear the screen
+def add_new_entry(for_edit=False):
+    if not for_edit:
+        os.system("cls" if os.name == "nt" else "clear")  # clear the screen
     while True:
         # set task date
         date_input = input("Date of the task:\nPlease use DD/MM/YYYY: ")  # get the task date from the user
@@ -101,23 +102,32 @@ def add_new_entry():
                      duration=task_duration,
                      notes=task_notes)
 
-    #check for duplicates, task should not be more than once in the log.
+    # check for duplicates, task should not be more than once in the log.
     tasks_dict = Task.load_from_log()
+    """
     if new_task.date.strftime(date_fmt) in tasks_dict.keys():
-        if new_task not in tasks_dict[new_task.date.strftime(date_fmt)]: # selected_tasks = tasks_dict[list(tasks_dict.keys())[int(index) - 1]]
-            new_task.add_task_to_file()
-            print("The following task has been successfully added:")
-            print(new_task)
-        else:
+        if new_task in tasks_dict[new_task.date.strftime(date_fmt)]:
             print("Task already exists!")
-    # write task to log file
-
-
+            """
+    if new_task not in list(tasks_dict.values()):
+        # write task to log file
+        new_task.add_task_to_file()
+        print("The following task has been successfully added:")
+        print(new_task)
+    else:
+        print("Task already exists!")
+    # if new_task.date.strftime(date_fmt) in tasks_dict.keys():
+    #     if new_task not in tasks_dict[new_task.date.strftime(date_fmt)]: # selected_tasks = tasks_dict[list(tasks_dict.keys())[int(index) - 1]]
+    #         # write task to log file
+    #         new_task.add_task_to_file()
+    #         print("The following task has been successfully added:")
+    #         print(new_task)
+    #     else:
+    #         print("Task already exists!")
 
 
 def display_selected_tasks(tasks):
     for i, task in enumerate(tasks, start=1):
-        #while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
         print(task)
@@ -132,7 +142,11 @@ def display_selected_tasks(tasks):
         if option.lower() in ['n', 'next'] and i < len(tasks):
             continue
         elif option.lower() in ['e', 'edit']:
-            # call edit function
+            # clear the screen
+            os.system("cls" if os.name == "nt" else "clear")
+            print("Please edit the following task:\n{}".format(task))
+            task.delete_task_from_log()
+            add_new_entry(for_edit=True)
             break  # back to main menu
         elif option.lower() in ['d', 'Delete']:
             # call delete function
@@ -144,6 +158,8 @@ def display_selected_tasks(tasks):
 
 def search_by_date():
     # get the whole exiting tasks from the tasks log file and loads it into a dictionary
+    # clear the screen
+    os.system("cls" if os.name == "nt" else "clear")
     tasks_dict = Task.load_from_log()  # loads all existing tasks in the work log CSV file
     print("From below dates list\nPlease select a date index:")
     dates = enumerate(tasks_dict.keys(), start=1)
