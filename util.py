@@ -1,5 +1,6 @@
 import os
 import datetime
+import re
 from tasks import Task
 
 date_fmt = '%d/%m/%Y'
@@ -15,47 +16,72 @@ def main_menu():
         print(welcome_msg)
         print("-" * len(welcome_msg))
 
-        user_selection = input("What would you like to do?\n"
-                               "a) Add new entry\n"
-                               "b) Search in existing entries\n"
-                               "c) Quit program\n"
-                               "")
+        menu_title = "What would you like to do?"
+        menu_items = ["Add new entry",
+                      "Search in existing entries",
+                      "Quit program",
+                      ]
 
-        if user_selection.upper() in ["ADD", "A"]:
-            add_new_entry()  # call add new entry function
-        elif user_selection.upper() in ["SEARCH", "B"]:
-            search_menu()
-        elif user_selection.upper() in ["QUIT", "C"]:
-            print("Quitting...Hope to see you soon!")
-            break
+        print(menu_title)
+        items = enumerate(menu_items, start=1)
+        for i, item in items:
+            print('{}) {}'.format(i, item))
+        try:
+            user_input = int(input())
+            if not 1 <= user_input <= len(menu_items):
+                raise ValueError
+        except ValueError:
+            input("Invalid selection!!!, press Enter to try again...")
+            continue
+        else:
+            if user_input == 1:
+                add_new_entry()  # call add new entry function
+            elif user_input == 2:
+                search_menu()  # call search function
+            elif user_input == 3:
+                print("Quitting...Hope to see you soon!")
+                return
 
 
 def search_menu():
     while True:
         os.system("cls" if os.name == "nt" else "clear")  # clear the screen
-        user_selection = input("Please select your desirable search method:\n"
-                               "a) Select a Date\n"
-                               "b) Range of Dates\n"
-                               "c) Time spent\n"
-                               "d) Exact Search\n"
-                               "e) Regex Pattern\n"
-                               "f) Return to Main menu\n")
+        menu_title = "Please select your desirable search method:"
+        menu_items = ["Select a Date",
+                      "Range of Dates",
+                      "Time spent",
+                      "Exact Search",
+                      "Regex Pattern",
+                      "Return to Main menu",
+                      ]
 
-        # loads all existing tasks in the work log CSV file
-        tasks_dict = Task.load_from_log()
+        print(menu_title)
+        items = enumerate(menu_items, start=1)
+        for i, item in items:
+            print('{}) {}'.format(i, item))
+        try:
+            user_input = int(input())
+            if not 1 <= user_input <= len(menu_items):
+                raise ValueError
+        except ValueError:
+            input("Invalid selection!!!, press Enter to try again...")
+            continue
+        else:
+            # loads all existing tasks in the work log CSV file
+            tasks_dict = Task.load_from_log()
 
-        if user_selection.upper() in ["Select a Date".upper(), "A"]:
-            search_by_date(tasks_dict)  # call search by date function
-        elif user_selection.upper() in ["Range of Dates".upper(), "B"]:
-            search_range_of_dates(tasks_dict)  # call search by range of dates function
-        elif user_selection.upper() in ["Time spent".upper(), "C"]:
-            search_time_spent(tasks_dict)  # call search by time spent function
-        elif user_selection.upper() in ["Exact Search".upper(), "D"]:
-            search_exact_value(tasks_dict)  # call search by exact value function
-        elif user_selection.upper() in ["Regex Pattern".upper(), "E"]:
-            search_regex_pattern()  # call search by regex pattern function
-        elif user_selection.upper() in ["Return to Main menu".upper(), "F"]:
-            break
+            if user_input == 1:
+                search_by_date(tasks_dict)  # call search by date function
+            elif user_input == 2:
+                search_range_of_dates(tasks_dict)  # call search by range of dates function
+            elif user_input == 3:
+                search_time_spent(tasks_dict)  # call search by time spent function
+            elif user_input == 4:
+                search_exact_value(tasks_dict)  # call search by exact value function
+            elif user_input == 5:
+                search_regex_pattern(tasks_dict)  # call search by regex pattern function
+            elif user_input == 6:
+                return
 
 
 def add_new_entry(for_edit=False):
@@ -63,14 +89,17 @@ def add_new_entry(for_edit=False):
         os.system("cls" if os.name == "nt" else "clear")  # clear the screen
     while True:
         # set task date
-        date_input = input("Date of the task:\nPlease use DD/MM/YYYY: ")  # get the task date from the user
-        try:
-            task_date = datetime.datetime.strptime(date_input, date_fmt).date()
-        except ValueError:
-            input("Invalid date!!!, press Enter to try again...")
-            continue
+        date_input = input("Date of the task ([R] to return to Main menu)\nPlease use DD/MM/YYYY: ")  # get the task date from the user
+        if date_input.upper() == 'R':
+            return
         else:
-            break
+            try:
+                task_date = datetime.datetime.strptime(date_input, date_fmt).date()
+            except ValueError:
+                input("Invalid date!!!, press Enter to try again...")
+                continue
+            else:
+                break
 
     while True:
         # set task name
@@ -250,5 +279,17 @@ def search_exact_value(tasks_dict):
     return  # go back to Search menu
 
 
-def search_regex_pattern():
-    pass
+def search_regex_pattern(tasks_dict):
+    # clear the screen
+    os.system("cls" if os.name == "nt" else "clear")
+    user_regex = input("Please enter your regex pattern:\n")
+    raw_string = r''.join(user_regex)
+
+    selected_tasks = []
+    for i, list in tasks_dict.items():
+        for task in list:
+            if re.search(raw_string, task.name + task.notes):
+                selected_tasks.append(task)
+    display_tasks(selected_tasks)
+    return  # go back to Search menu
+
