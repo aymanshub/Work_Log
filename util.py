@@ -1,100 +1,39 @@
+"""
+Utilities module for the work log:
+    1. add_new_entry
+    2. display_tasks
+    3. search_by_date
+    4. search_range_of_dates
+    5. search_time_spent
+    6. search_exact_value
+    7. search_regex_pattern
+
+"""
 import os
 import datetime
 import re
+import params
 from tasks import Task
-
-date_fmt = '%d/%m/%Y'
-
-
-def main_menu():
-    while True:
-        # clear the screen
-        os.system("cls" if os.name == "nt" else "clear")
-        welcome_msg = "Welcome To Work Log"
-
-        print("-" * len(welcome_msg))
-        print(welcome_msg)
-        print("-" * len(welcome_msg))
-
-        menu_title = "What would you like to do?"
-        menu_items = ["Add new entry",
-                      "Search in existing entries",
-                      "Quit program",
-                      ]
-
-        print(menu_title)
-        items = enumerate(menu_items, start=1)
-        for i, item in items:
-            print('{}) {}'.format(i, item))
-        try:
-            user_input = int(input())
-            if not 1 <= user_input <= len(menu_items):
-                raise ValueError
-        except ValueError:
-            input("Invalid selection!!!, press Enter to try again...")
-            continue
-        else:
-            if user_input == 1:
-                add_new_entry()  # call add new entry function
-            elif user_input == 2:
-                search_menu()  # call search function
-            elif user_input == 3:
-                print("Quitting...Hope to see you soon!")
-                return
-
-
-def search_menu():
-    while True:
-        os.system("cls" if os.name == "nt" else "clear")  # clear the screen
-        menu_title = "Please select your desirable search method:"
-        menu_items = ["Select a Date",
-                      "Range of Dates",
-                      "Time spent",
-                      "Exact Search",
-                      "Regex Pattern",
-                      "Return to Main menu",
-                      ]
-
-        print(menu_title)
-        items = enumerate(menu_items, start=1)
-        for i, item in items:
-            print('{}) {}'.format(i, item))
-        try:
-            user_input = int(input())
-            if not 1 <= user_input <= len(menu_items):
-                raise ValueError
-        except ValueError:
-            input("Invalid selection!!!, press Enter to try again...")
-            continue
-        else:
-            # loads all existing tasks in the work log CSV file
-            tasks_dict = Task.load_from_log()
-
-            if user_input == 1:
-                search_by_date(tasks_dict)  # call search by date function
-            elif user_input == 2:
-                search_range_of_dates(tasks_dict)  # call search by range of dates function
-            elif user_input == 3:
-                search_time_spent(tasks_dict)  # call search by time spent function
-            elif user_input == 4:
-                search_exact_value(tasks_dict)  # call search by exact value function
-            elif user_input == 5:
-                search_regex_pattern(tasks_dict)  # call search by regex pattern function
-            elif user_input == 6:
-                return
 
 
 def add_new_entry(for_edit=False):
+    """
+    Adds new entry\task to the work log file (supporting duplicate-free tasks)
+    by taking the new task attributes from the user screen
+    :param for_edit: True if the function is used for task editing context of an existing task
+    :return: None
+    """
     if not for_edit:
         os.system("cls" if os.name == "nt" else "clear")  # clear the screen
     while True:
         # set task date
-        date_input = input("Date of the task ([R] to return to Main menu)\nPlease use DD/MM/YYYY: ")  # get the task date from the user
-        if date_input.upper() == 'R':
+        date_input = input("Date of the task ([{}] to return to Main menu)\n"
+                           "Please use DD/MM/YYYY: ".format(params.previous_menu_key.upper()))
+        if date_input.upper() == params.previous_menu_key.upper():
             return
         else:
             try:
-                task_date = datetime.datetime.strptime(date_input, date_fmt).date()
+                task_date = datetime.datetime.strptime(date_input, params.date_fmt).date()
             except ValueError:
                 input("Invalid date!!!, press Enter to try again...")
                 continue
@@ -131,8 +70,8 @@ def add_new_entry(for_edit=False):
 
     # check for duplicates, task should not be more than once in the log.
     tasks_dict = Task.load_from_log()
-    if new_task.date.strftime(date_fmt) in tasks_dict.keys() and \
-            new_task in tasks_dict[new_task.date.strftime(date_fmt)]:
+    if new_task.date.strftime(params.date_fmt) in tasks_dict.keys() and \
+            new_task in tasks_dict[new_task.date.strftime(params.date_fmt)]:
         if not for_edit:
             print("Such task already exists!")
     else:
@@ -147,6 +86,11 @@ def add_new_entry(for_edit=False):
 
 
 def display_tasks(tasks):
+    """
+    Display the selected tasks resulted by a user search criteria.
+    :param tasks: list of Task instances
+    :return: None
+    """
     i = 0
     while True:
         # clear the screen
@@ -192,52 +136,69 @@ def display_tasks(tasks):
 
 
 def search_by_date(tasks_dict):
+    """
+    Displays all the distinct tasks dates to the user in an ascending order,
+    where the user should select a date to view all the tasks holding the same selected date.
+    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    The dictionary keys: the distinct tasks dates values we have in the log
+    The dictionary values: all the corresponding tasks that holds the same date key.
+    :return:None
+    """
     # get the whole exiting tasks from the tasks log file and loads it into a dictionary
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
         print("From below dates list\nPlease select a date index:")
-        dates = enumerate(tasks_dict.keys(), start=1)
+        sorted_dates = sorted([datetime.datetime.strptime(key, params.date_fmt).date() for key in tasks_dict.keys()])
+        dates = enumerate(sorted_dates, start=1)
         for i, date in dates:
-            print('{}) {}'.format(i, date))
-        max_index = len(tasks_dict)+1
-        print('{}) Return to Search menu'.format(max_index))
-        try:
-            index = int(input())
-            if 1 <= index <= max_index: # range of valid selections
-                if index == max_index:
-                    return  # return to Search menu
-                else:
-                    selected_tasks = tasks_dict[list(tasks_dict.keys())[index - 1]]
-            else:
-                raise ValueError
-        except ValueError:
-            input("Invalid selection, please press Enter to try again...")
-            continue
+            print('{})\t{}'.format(i, date.strftime(params.date_fmt)).expandtabs(2))
+        print('[{}] Return to Search menu'.format(params.previous_menu_key.upper()))
+        user_input = input()
+        if user_input.upper() == params.previous_menu_key.upper():
+            return  # return to Search menu
         else:
-            display_tasks(selected_tasks)
-            return  # go back to Search menu
+            try:
+                index = int(user_input)
+                if 1 <= index <= len(tasks_dict):  # range of valid date selections
+                    selected_tasks = tasks_dict[sorted_dates[index-1].strftime(params.date_fmt)]
+                else:
+                    raise ValueError
+            except ValueError:
+                input("Invalid selection, please press Enter to try again...")
+                continue
+            else:
+                display_tasks(selected_tasks)
+                return  # go back to Search menu
 
 
 def search_range_of_dates(tasks_dict):
+    """
+    Search and displays all tasks found in the date range given by the user.
+    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    The dictionary keys: the distinct tasks dates values we have in the log
+    The dictionary values: all the corresponding tasks that holds the same date key.
+    :return: None
+    """
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        print("Please enter dates range, use DD/MM/YYYY format\nEnter [R] to Return to Search menu")
+        print("Please enter dates range, use DD/MM/YYYY format\n"
+              "Enter [{}] to Return to Search menu".format(params.previous_menu_key.upper()))
         from_date = input("From date: ")
         to_date = input("To date: ")
-        if 'R' in (from_date.upper(), to_date.upper()):
+        if params.previous_menu_key.upper() in (from_date.upper(), to_date.upper()):
             return  # go back to Search menu
         try:
-            from_date = datetime.datetime.strptime(from_date, date_fmt).date()
-            to_date = datetime.datetime.strptime(to_date, date_fmt).date()
+            from_date = datetime.datetime.strptime(from_date, params.date_fmt).date()
+            to_date = datetime.datetime.strptime(to_date, params.date_fmt).date()
         except ValueError:
             input("Invalid date!!!, press Enter to try again...")
             continue
         else:
             selected_tasks = []
             for key in tasks_dict.keys():
-                key_date = datetime.datetime.strptime(key, date_fmt).date()
+                key_date = datetime.datetime.strptime(key, params.date_fmt).date()
                 if from_date <= key_date <= to_date:
                     selected_tasks.extend(tasks_dict[key])
             display_tasks(selected_tasks)
@@ -245,11 +206,19 @@ def search_range_of_dates(tasks_dict):
 
 
 def search_time_spent(tasks_dict):
+    """
+    Search and displays all tasks having the same time spent value given by the user.
+    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    The dictionary keys: the distinct tasks dates values we have in the log
+    The dictionary values: all the corresponding tasks that holds the same date key.
+    :return: None
+    """
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        time_spent = input("Please enter a time spent value (rounded minutes)\nEnter [R] to Return to Search menu:")
-        if time_spent.upper() == 'R':
+        time_spent = input("Please enter a time spent value (rounded minutes)\n"
+                           "Enter [{}] to Return to Search menu:".format(params.previous_menu_key.upper()))
+        if time_spent.upper() == params.previous_menu_key.upper():
             return  # go back to Search menu
         try:
             time_spent = int(time_spent)
@@ -267,6 +236,13 @@ def search_time_spent(tasks_dict):
 
 
 def search_exact_value(tasks_dict):
+    """
+    Search and displays all tasks having the exact value given by the user in the task title or notes fields.
+    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    The dictionary keys: the distinct tasks dates values we have in the log
+    The dictionary values: all the corresponding tasks that holds the same date key.
+    :return: None
+    """
     # clear the screen
     os.system("cls" if os.name == "nt" else "clear")
     text = input("Please enter any text to find in the Work Log:\n")
@@ -280,6 +256,14 @@ def search_exact_value(tasks_dict):
 
 
 def search_regex_pattern(tasks_dict):
+    """
+    Search and displays all tasks matching the regular-expression value given by the user
+    in the task title or notes fields.
+    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    The dictionary keys: the distinct tasks dates values we have in the log
+    The dictionary values: all the corresponding tasks that holds the same date key.
+    :return: None
+    """
     # clear the screen
     os.system("cls" if os.name == "nt" else "clear")
     user_regex = input("Please enter your regex pattern:\n")
@@ -291,4 +275,3 @@ def search_regex_pattern(tasks_dict):
                 selected_tasks.append(task)
     display_tasks(selected_tasks)
     return  # go back to Search menu
-
