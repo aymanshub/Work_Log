@@ -283,12 +283,11 @@ def search_regex_pattern(tasks_dict):
     # clear the screen
     os.system("cls" if os.name == "nt" else "clear")
     user_regex = input("Please enter your regex pattern:\n")
-    raw_string = r''.join(user_regex)
 
     selected_tasks = []
-    for i, list in tasks_dict.items():
-        for task in list:
-            if re.search(raw_string, task.name + task.notes):
+    for i, tasks in tasks_dict.items():
+        for task in tasks:
+            if re.search(user_regex, task.name) or re.search(user_regex, task.notes):
                 selected_tasks.append(task)
     display_tasks(selected_tasks)
     return  # go back to Search menu

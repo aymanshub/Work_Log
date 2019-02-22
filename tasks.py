@@ -4,6 +4,7 @@ import csv
 
 date_fmt = '%d/%m/%Y'
 
+
 class Task:
 
     def __init__(self, date=None, name=None, time_spent=0, notes=None):
@@ -58,7 +59,7 @@ class Task:
             reader = csv.DictReader(original)
             writer = csv.DictWriter(output, fieldnames=fieldnames)
             writer.writeheader()
-            i = 1 # rows counter used for error handling
+            i = 1  # rows counter used for error handling
             for row in reader:
                 i += 1
                 # create task object from row
@@ -89,7 +90,6 @@ class Task:
                 except ValueError:
                     print("invalid record in {} , see line#{}\n skipping task!".format(filename, i))
                 else:
-                    new_key = new_task.date.strftime(date_fmt)
                     if row['date'] not in tasks_dict:
                         tasks_dict[row['date']] = []
                     tasks_dict[row['date']].append(new_task)
