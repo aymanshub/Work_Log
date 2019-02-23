@@ -119,3 +119,6 @@ dmypy.json
 .idea/workspace.xml
 .idea/vcs.xml
 .idea/dictionaries/Ayman.xml
+_original.csv
+.idea/codeStyles/codeStyleConfig.xml
+log.csv

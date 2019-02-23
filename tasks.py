@@ -30,10 +30,11 @@ class Task:
         return "Date: {date}\n" \
                "Title: {title}\n" \
                "Time Spent: {time_spent}\n" \
-               "Notes: {notes}".format(date=datetime.date.strftime(self.date, params.date_fmt),
-                                       title=self.name,
-                                       time_spent=self.time_spent,
-                                       notes=self.notes)
+               "Notes: {notes}"\
+            .format(date=datetime.date.strftime(self.date, params.date_fmt),
+                    title = self.name,
+                    time_spent = self.time_spent,
+                    notes = self.notes)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -48,7 +49,7 @@ class Task:
         :return: None
         """
 
-        f_exit = True  # indicates if the program should be terminated due to potential errors on file open\write
+        f_exit = True  # to exit program due to errors on file open\write
 
         try:
             with open(filename, "a", newline='') as csvfile:
@@ -73,15 +74,16 @@ class Task:
     def delete_task_from_log(self, filename='log.csv', tempfile='temp.csv'):
         """
         Deletes the task instance from the log file.
-        The deletion is made by using a temp file for copying all entries except for
-        the selected entry for deletion, and then deletes the original log and renames the
-        temp log to the original log filename.
+        The deletion is made by using a temp file for copying all entries
+        except for the selected entry for deletion, and then deletes
+        the original log and renames the temp log to the original log filename.
         :param filename:
         :param tempfile:
         :return:
         """
         try:
-            with open(filename, newline='') as original, open(tempfile, 'w', newline='') as output:
+            with open(filename, newline='') as original, \
+                    open(tempfile, 'w', newline='') as output:
                 fieldnames = ['date', 'task name', 'time spent', 'notes']
                 reader = csv.DictReader(original)
                 writer = csv.DictWriter(output, fieldnames=fieldnames)
@@ -91,12 +93,18 @@ class Task:
                     i += 1
                     # create task object from row
                     try:
-                        date = datetime.datetime.strptime(row['date'], params.date_fmt).date()
-                        row_task = self.__class__(date, row['task name'], int(row['time spent']), row['notes'])
+                        date = datetime.datetime\
+                            .strptime(row['date'], params.date_fmt).date()
+                        row_task = self.__class__(date,
+                                                  row['task name'],
+                                                  int(row['time spent']),
+                                                  row['notes'])
                     except ValueError:
-                        print("invalid record in {} , see line#{}\n skipping task!".format(filename, i))
+                        print("invalid record in {} , "
+                              "see line#{}\n skipping task!"
+                              .format(filename, i))
                     else:
-                        # ignoring the task for deletion so it will not be copied to the new log
+                        # ignoring copying the task for deletion to tempfile
                         if self != row_task:
                             writer.writerow(row)
         except FileNotFoundError:
@@ -104,15 +112,17 @@ class Task:
         except Exception as e:
             print("Error in file: {} or {}\n{}".format(filename, tempfile, e))
         else:
-            # Rename tempfile to filename, first remove existing filename then rename temp file
+            # Rename tempfile to filename,
+            # first remove existing filename then rename temp file
             os.remove(filename)
             os.rename(tempfile, filename)
 
     @classmethod
     def load_from_log(cls, filename='log.csv'):
         """
-        Class method that reads all the log file entries and load then into a tasks dictionary
-        where the dictionary keys are: the distinct tasks dates values we have in the log.
+        Class method that reads all the log file entries and load then
+        into a tasks dictionary where the dictionary keys are: the distinct
+        tasks dates values we have in the log.
         :param filename:
         :return:
         """
@@ -124,10 +134,15 @@ class Task:
                 for row in reader:
                     i += 1
                     try:
-                        date = datetime.datetime.strptime(row['date'], params.date_fmt).date()
-                        new_task = cls(date, row['task name'], int(row['time spent']), row['notes'])
+                        date = datetime.datetime\
+                            .strptime(row['date'], params.date_fmt).date()
+                        new_task = cls(date,
+                                       row['task name'],
+                                       int(row['time spent']),
+                                       row['notes'])
                     except ValueError:
-                        print("invalid record in {} , see line#{}\n skipping task!".format(filename, i))
+                        print("invalid record in {} , see line#{}\n"
+                              "skipping task!".format(filename, i))
                     else:
                         if row['date'] not in tasks_dict:
                             tasks_dict[row['date']] = []

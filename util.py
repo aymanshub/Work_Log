@@ -11,16 +11,46 @@ Utilities module for the work log:
 """
 import os
 import datetime
+import csv
 import re
 import params
 from tasks import Task
+
+def verify_log(filename = 'log.csv'):
+    # ensure correct log:
+    # to verify if log file exists if not to create one
+    # 1. if log file exists to verify it being correct:
+    #   correct:
+    #                   1.first row(header) has exact correct fields
+    #               2. if not to open for write with 'w' (truncate), and write header
+    result = True
+    if os.path.exists(filename):
+        # check content correctness
+        pass
+    else:
+        # create and write one
+        try:
+            with open(filename, 'w', newline = '') as file:
+                fieldnames = ['date', 'task name', 'time spent', 'notes']
+                writer = csv.DictWriter(file, fieldnames = fieldnames)
+                writer.writeheader()
+        except Exception as e:
+            print("Error in file: {}\n{}".format(filename, e))
+            result = False
+        else:
+            result = True
+        finally:
+            return result
+
+    return result
 
 
 def add_new_entry(for_edit=False):
     """
     Adds new entry\task to the work log file (supporting duplicate-free tasks)
     by taking the new task attributes from the user screen
-    :param for_edit: True if the function is used for task editing context of an existing task
+    :param for_edit: True if the function is used for task editing context
+    of an existing task
     :return: None
     """
     if not for_edit:
@@ -28,12 +58,14 @@ def add_new_entry(for_edit=False):
     while True:
         # set task date
         date_input = input("Date of the task ([{}] to return to Main menu)\n"
-                           "Please use DD/MM/YYYY: ".format(params.previous_menu_key.upper()))
+                           "Please use DD/MM/YYYY: "
+                           .format(params.previous_menu_key.upper()))
         if date_input.upper() == params.previous_menu_key.upper():
             return
         else:
             try:
-                task_date = datetime.datetime.strptime(date_input, params.date_fmt).date()
+                task_date = datetime.datetime.strptime(date_input,
+                                                       params.date_fmt).date()
             except ValueError:
                 input("Invalid date!!!, press Enter to try again...")
                 continue
@@ -100,7 +132,7 @@ def display_tasks(tasks):
             print("no tasks have been found.".upper())
         else:
             print(tasks[i])
-            print("\nResult {} of {}\n".format(i+1, len(tasks)))
+            print("\nResult {} of {}\n".format(i + 1, len(tasks)))
             commands = "[E]dit, [D]elete, " + commands
             if i < len(tasks) - 1:
                 # Add Next command
@@ -116,9 +148,9 @@ def display_tasks(tasks):
         option = input()
 
         if option.lower() in ['n', 'next'] and i < len(tasks) - 1:
-                i += 1
+            i += 1
         elif option.lower() in ['b', 'back'] and i > 0:
-                i -= 1
+            i -= 1
         elif option.lower() in ['e', 'edit'] and len(tasks):
             # clear the screen
             os.system("cls" if os.name == "nt" else "clear")
@@ -138,30 +170,42 @@ def display_tasks(tasks):
 def search_by_date(tasks_dict):
     """
     Displays all the distinct tasks dates to the user in an ascending order,
-    where the user should select a date to view all the tasks holding the same selected date.
-    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    where the user should select a date to view all the tasks holding the same
+    selected date.
+    :param tasks_dict: A dictionary holding all the existing tasks in the log
+    file.
     The dictionary keys: the distinct tasks dates values we have in the log
-    The dictionary values: all the corresponding tasks that holds the same date key.
+    The dictionary values: all the corresponding tasks that holds the same date
+    key.
     :return:None
     """
-    # get the whole exiting tasks from the tasks log file and loads it into a dictionary
+
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        print("From below dates list\nPlease select a date index:")
-        sorted_dates = sorted([datetime.datetime.strptime(key, params.date_fmt).date() for key in tasks_dict.keys()])
+        if tasks_dict:
+            print("From below dates list\nPlease select a date index:")
+        else:
+            print("No existing entries!")
+        sorted_dates = sorted(
+            [datetime.datetime.strptime(key, params.date_fmt).date()
+             for key in tasks_dict.keys()])
         dates = enumerate(sorted_dates, start=1)
         for i, date in dates:
-            print('{})\t{}'.format(i, date.strftime(params.date_fmt)).expandtabs(2))
-        print('[{}] Return to Search menu'.format(params.previous_menu_key.upper()))
+            print('{})\t{}'.format(i, date.strftime(params.date_fmt))
+                  .expandtabs(2))
+
+        print('[{}] Return to Search menu'.format(
+            params.previous_menu_key.upper()))
         user_input = input()
         if user_input.upper() == params.previous_menu_key.upper():
             return  # return to Search menu
         else:
             try:
                 index = int(user_input)
-                if 1 <= index <= len(tasks_dict):  # range of valid date selections
-                    selected_tasks = tasks_dict[sorted_dates[index-1].strftime(params.date_fmt)]
+                if 1 <= index <= len(tasks_dict):  # range of selections
+                    selected_tasks = tasks_dict[
+                        sorted_dates[index - 1].strftime(params.date_fmt)]
                 else:
                     raise ValueError
             except ValueError:
@@ -175,30 +219,37 @@ def search_by_date(tasks_dict):
 def search_range_of_dates(tasks_dict):
     """
     Search and displays all tasks found in the date range given by the user.
-    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    :param tasks_dict: A dictionary holding all the existing tasks in the log
+    file.
     The dictionary keys: the distinct tasks dates values we have in the log
-    The dictionary values: all the corresponding tasks that holds the same date key.
+    The dictionary values: all the corresponding tasks that holds the same date
+    key.
     :return: None
     """
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
         print("Please enter dates range, use DD/MM/YYYY format\n"
-              "Enter [{}] to Return to Search menu".format(params.previous_menu_key.upper()))
+              "Enter [{}] to Return to Search menu"
+              .format(params.previous_menu_key.upper()))
         from_date = input("From date: ")
         to_date = input("To date: ")
-        if params.previous_menu_key.upper() in (from_date.upper(), to_date.upper()):
+        if params.previous_menu_key.upper() in (from_date.upper(),
+                                                to_date.upper()):
             return  # go back to Search menu
         try:
-            from_date = datetime.datetime.strptime(from_date, params.date_fmt).date()
-            to_date = datetime.datetime.strptime(to_date, params.date_fmt).date()
+            from_date = datetime.datetime.strptime(from_date,
+                                                   params.date_fmt).date()
+            to_date = datetime.datetime.strptime(to_date,
+                                                 params.date_fmt).date()
         except ValueError:
             input("Invalid date!!!, press Enter to try again...")
             continue
         else:
             selected_tasks = []
             for key in tasks_dict.keys():
-                key_date = datetime.datetime.strptime(key, params.date_fmt).date()
+                key_date = datetime.datetime.strptime(key,
+                                                      params.date_fmt).date()
                 if from_date <= key_date <= to_date:
                     selected_tasks.extend(tasks_dict[key])
             display_tasks(selected_tasks)
@@ -207,17 +258,22 @@ def search_range_of_dates(tasks_dict):
 
 def search_time_spent(tasks_dict):
     """
-    Search and displays all tasks having the same time spent value given by the user.
-    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    Search and displays all tasks having the same time spent value given
+    by the user.
+    :param tasks_dict: A dictionary holding all the existing tasks in the log
+    file.
     The dictionary keys: the distinct tasks dates values we have in the log
-    The dictionary values: all the corresponding tasks that holds the same date key.
+    The dictionary values: all the corresponding tasks that holds the same date
+    key.
     :return: None
     """
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        time_spent = input("Please enter a time spent value (rounded minutes)\n"
-                           "Enter [{}] to Return to Search menu:".format(params.previous_menu_key.upper()))
+        time_spent = input(
+            "Please enter a time spent value (rounded minutes)\n"
+            "Enter [{}] to Return to Search menu:".format(
+                params.previous_menu_key.upper()))
         if time_spent.upper() == params.previous_menu_key.upper():
             return  # go back to Search menu
         try:
@@ -237,10 +293,13 @@ def search_time_spent(tasks_dict):
 
 def search_exact_value(tasks_dict):
     """
-    Search and displays all tasks having the exact value given by the user in the task title or notes fields.
-    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    Search and displays all tasks having the exact value given by the user
+    in the task title or notes fields.
+    :param tasks_dict: A dictionary holding all the existing tasks in the
+    log file.
     The dictionary keys: the distinct tasks dates values we have in the log
-    The dictionary values: all the corresponding tasks that holds the same date key.
+    The dictionary values: all the corresponding tasks that holds the same
+    date key.
     :return: None
     """
     # clear the screen
@@ -257,11 +316,14 @@ def search_exact_value(tasks_dict):
 
 def search_regex_pattern(tasks_dict):
     """
-    Search and displays all tasks matching the regular-expression value given by the user
+    Search and displays all tasks matching the regular-expression value
+    given by the user
     in the task title or notes fields.
-    :param tasks_dict: A dictionary holding all the existing tasks in the log file,
+    :param tasks_dict: A dictionary holding all the existing tasks in the
+    log file.
     The dictionary keys: the distinct tasks dates values we have in the log
-    The dictionary values: all the corresponding tasks that holds the same date key.
+    The dictionary values: all the corresponding tasks that holds the same
+    date key.
     :return: None
     """
     # clear the screen
@@ -271,7 +333,8 @@ def search_regex_pattern(tasks_dict):
     selected_tasks = []
     for i, tasks in tasks_dict.items():
         for task in tasks:
-            if re.search(user_regex, task.name) or re.search(user_regex, task.notes):
+            if re.search(user_regex, task.name) or re.search(user_regex,
+                                                             task.notes):
                 selected_tasks.append(task)
     display_tasks(selected_tasks)
     return  # go back to Search menu

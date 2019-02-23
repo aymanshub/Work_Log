@@ -13,7 +13,8 @@ from tasks import Task
 
 def main_menu():
     """
-    The startup program screen, the user is presented with the initial user options:
+    The startup program screen, the user is presented with
+    the initial user options:
     1. Add a new entry
     2. Search for existing entries
     3. Quit the program
@@ -75,7 +76,8 @@ def search_menu():
         items = enumerate(menu_items, start=1)
         for i, item in items:
             print('{}) {}'.format(i, item))
-        print('[{}] {}'.format(params.previous_menu_key.upper(), previous_menu))
+        print('[{}] {}'.format(params.previous_menu_key.upper(),
+                               previous_menu))
         user_input = input()
         if user_input.upper() == params.previous_menu_key.upper():
             return  # return to Main menu
@@ -92,16 +94,17 @@ def search_menu():
                 tasks_dict = Task.load_from_log()
 
                 if index == 1:
-                    util.search_by_date(tasks_dict)  # call search by date function
+                    util.search_by_date(tasks_dict)
                 elif index == 2:
-                    util.search_range_of_dates(tasks_dict)  # call search by range of dates function
+                    util.search_range_of_dates(tasks_dict)
                 elif index == 3:
-                    util.search_time_spent(tasks_dict)  # call search by time spent function
+                    util.search_time_spent(tasks_dict)
                 elif index == 4:
-                    util.search_exact_value(tasks_dict)  # call search by exact value function
+                    util.search_exact_value(tasks_dict)
                 elif index == 5:
-                    util.search_regex_pattern(tasks_dict)  # call search by regex pattern function
+                    util.search_regex_pattern(tasks_dict)
 
 
 if __name__ == '__main__':
-    main_menu()
+    if util.verify_log():
+        main_menu()
