@@ -32,9 +32,9 @@ class Task:
                "Time Spent: {time_spent}\n" \
                "Notes: {notes}"\
             .format(date=datetime.date.strftime(self.date, params.date_fmt),
-                    title = self.name,
-                    time_spent = self.time_spent,
-                    notes = self.notes)
+                    title=self.name,
+                    time_spent=self.time_spent,
+                    notes=self.notes)
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__

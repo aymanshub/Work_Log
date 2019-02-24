@@ -23,7 +23,7 @@ def verify_log(filename = 'log.csv'):
     #   correct:
     #                   1.first row(header) has exact correct fields
     #               2. if not to open for write with 'w' (truncate), and write header
-    result = True
+
     fieldnames = ['date', 'task name', 'time spent', 'notes']
     if os.path.exists(filename):
     # check content correctness
@@ -32,21 +32,32 @@ def verify_log(filename = 'log.csv'):
         try:
             with open(filename, 'r', newline='') as file:
                 reader = csv.DictReader(file)
-                reader.re
+                if reader.fieldnames[:len(fieldnames)] == fieldnames:
+                #if reader.fieldnames == fieldnames:
+                    input("GREATTTT we have a an existing {}\n"
+                          "with the right field names:{}"
+                          .format(filename, fieldnames))
+                else:
+                    raise ValueError
+        except (ValueError, Exception) as e:
+            print("The existing {} header\n"
+                  "Doesn't comply with expected field names: {}\n{}"
+                  .format(filename, fieldnames, e))
+            result = False
+        else:
+            result = True
+
     else:
         # create new and write header
         try:
             with open(filename, 'w', newline='') as file:
-                # fieldnames = ['date', 'task name', 'time spent', 'notes']
-                writer = csv.DictWriter(file, fieldnames = fieldnames)
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
                 writer.writeheader()
         except Exception as e:
-            print("Error in file: {}\n{}".format(filename, e))
+            print("Unable to create a new file: {}\n{}".format(filename, e))
             result = False
         else:
             result = True
-        finally:
-            return result
 
     return result
 
