@@ -16,39 +16,37 @@ import re
 import params
 from tasks import Task
 
-def verify_log(filename = 'log.csv'):
-    # ensure correct log:
-    # to verify if log file exists if not to create one
-    # 1. if log file exists to verify it being correct:
-    #   correct:
-    #                   1.first row(header) has exact correct fields
-    #               2. if not to open for write with 'w' (truncate), and write header
+
+def verify_log(filename=params.log_file_name):
+    """
+    Verifies we have a correct log file, in terms of header and file
+    existence.
+    :param filename: the log file name, we are going to verify.
+    :return: bool, True if we can continue and work with tha log file.
+    """
 
     fieldnames = ['date', 'task name', 'time spent', 'notes']
+    # verify if file exists
     if os.path.exists(filename):
-    # check content correctness
-        pass
-        # check if header exist
+        # check if log header comply with the expected field names
         try:
             with open(filename, 'r', newline='') as file:
                 reader = csv.DictReader(file)
+                # graceful validation, on log header (field names)
                 if reader.fieldnames[:len(fieldnames)] == fieldnames:
-                #if reader.fieldnames == fieldnames:
-                    input("GREATTTT we have a an existing {}\n"
-                          "with the right field names:{}"
-                          .format(filename, fieldnames))
+                    pass
                 else:
                     raise ValueError
         except (ValueError, Exception) as e:
-            print("The existing {} header\n"
+            print("The existing field names: {} in {}\n"
                   "Doesn't comply with expected field names: {}\n{}"
-                  .format(filename, fieldnames, e))
+                  .format(reader.fieldnames, filename, fieldnames, e))
             result = False
         else:
             result = True
 
     else:
-        # create new and write header
+        # create a new  log and write field names
         try:
             with open(filename, 'w', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=fieldnames)
@@ -200,17 +198,18 @@ def search_by_date(tasks_dict):
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        if tasks_dict:
-            print("From below dates list\nPlease select a date index:")
+        # display message accordingly if the work is empty
+        if not tasks_dict:
+            print("No existing entries, work log is empty!")
         else:
-            print("No existing entries!")
-        sorted_dates = sorted(
-            [datetime.datetime.strptime(key, params.date_fmt).date()
-             for key in tasks_dict.keys()])
-        dates = enumerate(sorted_dates, start=1)
-        for i, date in dates:
-            print('{})\t{}'.format(i, date.strftime(params.date_fmt))
-                  .expandtabs(2))
+            print("From below dates list\nPlease select a date index:")
+            sorted_dates = sorted(
+                [datetime.datetime.strptime(key, params.date_fmt).date()
+                 for key in tasks_dict.keys()])
+            dates = enumerate(sorted_dates, start=1)
+            for i, date in dates:
+                print('{})\t{}'.format(i, date.strftime(params.date_fmt))
+                      .expandtabs(2))
 
         print('[{}] Return to Search menu'.format(
             params.previous_menu_key.upper()))
@@ -246,13 +245,19 @@ def search_range_of_dates(tasks_dict):
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        print("Please enter dates range, use DD/MM/YYYY format\n"
-              "Enter [{}] to Return to Search menu"
+        # display message accordingly if the work is empty
+        if not tasks_dict:
+            print("No existing entries, work log is empty!")
+        else:
+            print("Please enter dates range, use DD/MM/YYYY format.")
+        print("Enter [{}] to Return to Search menu"
               .format(params.previous_menu_key.upper()))
+
         from_date = input("From date: ")
+        if from_date.upper() == params.previous_menu_key.upper():
+            return  # go back to Search menu
         to_date = input("To date: ")
-        if params.previous_menu_key.upper() in (from_date.upper(),
-                                                to_date.upper()):
+        if to_date.upper() == params.previous_menu_key.upper():
             return  # go back to Search menu
         try:
             from_date = datetime.datetime.strptime(from_date,
@@ -287,10 +292,16 @@ def search_time_spent(tasks_dict):
     while True:
         # clear the screen
         os.system("cls" if os.name == "nt" else "clear")
-        time_spent = input(
-            "Please enter a time spent value (rounded minutes)\n"
-            "Enter [{}] to Return to Search menu:".format(
-                params.previous_menu_key.upper()))
+        # display message accordingly if the work is empty
+        if not tasks_dict:
+            print("No existing entries, work log is empty!")
+        else:
+            print("Please enter a time spent value (rounded minutes)")
+        print("Enter [{}] to Return to Search menu:"
+              .format(params.previous_menu_key.upper()))
+
+        time_spent = input()
+
         if time_spent.upper() == params.previous_menu_key.upper():
             return  # go back to Search menu
         try:

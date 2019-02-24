@@ -42,7 +42,7 @@ class Task:
     def __ne__(self, other):
         return self.__dict__ != other.__dict__
 
-    def add_task_to_file(self, filename='log.csv'):
+    def add_task_to_file(self, filename=params.log_file_name):
         """
         Adds and writes the task instance to the given log file
         :param filename: log csv filename
@@ -71,7 +71,9 @@ class Task:
         if f_exit:
             exit(1)  # Exits the program due to the caught errors
 
-    def delete_task_from_log(self, filename='log.csv', tempfile='temp.csv'):
+    def delete_task_from_log(self,
+                             filename=params.log_file_name,
+                             tempfile='temp.csv'):
         """
         Deletes the task instance from the log file.
         The deletion is made by using a temp file for copying all entries
@@ -118,7 +120,7 @@ class Task:
             os.rename(tempfile, filename)
 
     @classmethod
-    def load_from_log(cls, filename='log.csv'):
+    def load_from_log(cls, filename=params.log_file_name):
         """
         Class method that reads all the log file entries and load then
         into a tasks dictionary where the dictionary keys are: the distinct
