@@ -24,14 +24,20 @@ def verify_log(filename = 'log.csv'):
     #                   1.first row(header) has exact correct fields
     #               2. if not to open for write with 'w' (truncate), and write header
     result = True
+    fieldnames = ['date', 'task name', 'time spent', 'notes']
     if os.path.exists(filename):
-        # check content correctness
+    # check content correctness
         pass
-    else:
-        # create and write one
+        # check if header exist
         try:
-            with open(filename, 'w', newline = '') as file:
-                fieldnames = ['date', 'task name', 'time spent', 'notes']
+            with open(filename, 'r', newline='') as file:
+                reader = csv.DictReader(file)
+                reader.re
+    else:
+        # create new and write header
+        try:
+            with open(filename, 'w', newline='') as file:
+                # fieldnames = ['date', 'task name', 'time spent', 'notes']
                 writer = csv.DictWriter(file, fieldnames = fieldnames)
                 writer.writeheader()
         except Exception as e:
